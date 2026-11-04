@@ -41,7 +41,7 @@ public class InscripcionService {
         inscripcion.setCorreo(payload.getCorreo());
         inscripcion.setFechaInscripcion(hoy);
         inscripcion.setEstado(EstadoInscripcion.ACTIVA);
-        inscripcion.setCalificacion(payload.getCalificacion());
+        inscripcion.setCalificacion(null);
         inscripcion.setCurso(curso);
         return inscripcionRepository.save(inscripcion);
 

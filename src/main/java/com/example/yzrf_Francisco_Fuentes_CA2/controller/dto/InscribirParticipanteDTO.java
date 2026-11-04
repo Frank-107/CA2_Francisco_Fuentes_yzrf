@@ -30,7 +30,4 @@ public class InscribirParticipanteDTO {
     @Email(message = "formato incorrecto")
     private String correo;
 
-
-    @NotNull
-    private Double calificacion;
 }
