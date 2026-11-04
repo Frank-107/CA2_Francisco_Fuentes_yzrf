@@ -79,6 +79,10 @@ public class InscripcionService {
             throw new CustomException("no existe");
         }
 
+        if(payload.getCalificacion()>10 || payload.getCalificacion()<0){
+            throw new CustomException("calificacion no valida");
+        }
+
 
         Inscripcion inscripcion = inscripcionOp.get();
         inscripcion.setCalificacion(payload.getCalificacion());
