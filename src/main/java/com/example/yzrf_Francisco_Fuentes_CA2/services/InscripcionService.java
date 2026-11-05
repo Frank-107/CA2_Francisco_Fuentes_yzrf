@@ -1,6 +1,7 @@
 package com.example.yzrf_Francisco_Fuentes_CA2.services;
 
 import com.example.yzrf_Francisco_Fuentes_CA2.controller.dto.CancelarInscripcionDTO;
+import com.example.yzrf_Francisco_Fuentes_CA2.controller.dto.DetalleInscripcionResponseDTO;
 import com.example.yzrf_Francisco_Fuentes_CA2.controller.dto.InscribirParticipanteDTO;
 import com.example.yzrf_Francisco_Fuentes_CA2.controller.dto.RegistrarCalif;
 import com.example.yzrf_Francisco_Fuentes_CA2.exception.CustomException;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -51,14 +53,20 @@ public class InscripcionService {
     @Transactional
     public Inscripcion cancelar(CancelarInscripcionDTO payload){
         Optional<Inscripcion> inscripcionOp = inscripcionRepository.findById(payload.getIdInscripcion());
-        if(!inscripcionOp.isPresent()){
-            throw new CustomException("el Curso no existe");
+        if(inscripcionOp.isEmpty()){
+            throw new CustomException("la inscripcion no existe");
         }
 
         Inscripcion inscripcion = inscripcionOp.get();
+        if(inscripcion.getEstado()!=EstadoInscripcion.ACTIVA){
+            throw new CustomException("la inscripcion no esta activa");
+        }
 
         LocalDate hoy = LocalDate.now();
-        if (hoy.isAfter(inscripcion.getFechaInscripcion())){
+        if(inscripcion.getCurso()==null){
+            throw new CustomException("el Curso no existe");
+        }
+        if(hoy.isAfter(inscripcion.getCurso().getFechaInicio())){
             throw new CustomException("el curso ya ha comenzado no se puede cancelar");
         }
 
@@ -85,8 +93,48 @@ public class InscripcionService {
 
 
         Inscripcion inscripcion = inscripcionOp.get();
+        Curso curso = inscripcion.getCurso();
+
+        if (curso==null){
+            throw new CustomException("el curso no existe");
+        }
+
+        if(curso.getEstado()!=Estado.FINALIZADO){
+            throw new CustomException("el curso no esta Finalizado");
+        }
+
+        if(inscripcion.getEstado()!=EstadoInscripcion.ACTIVA){
+            throw new CustomException("la inscripcion no esta activa");
+        }
+
+        inscripcion.setEstado(EstadoInscripcion.COMPLETADA);
+
         inscripcion.setCalificacion(payload.getCalificacion());
         return inscripcionRepository.save(inscripcion);
     }
 
+    public List<Inscripcion> listarByCorreo(String correo) {
+        return inscripcionRepository.findInscripcionByCorreo(correo);
+    }
+
+    public DetalleInscripcionResponseDTO getDetalle(Long id) {
+        Optional<Inscripcion> inscripcionOp = inscripcionRepository.findById(id);
+        if(inscripcionOp.isEmpty()){
+            throw new CustomException("la inscripicon no existe");
+        }
+
+
+        Inscripcion inscripcion = inscripcionOp.get();
+        DetalleInscripcionResponseDTO detalle= new DetalleInscripcionResponseDTO();
+        detalle.setCorreo(inscripcion.getCorreo());
+        detalle.setNombreParticipante(inscripcion.getNombreParticipante());
+        detalle.setEdadParticipante(inscripcion.getEdadParticipante());
+        return detalle;
+    }
+
+    public List<Inscripcion> listarByEstado(EstadoInscripcion estado) {
+
+
+        return inscripcionRepository.findInscripcionByEstado(estado);
+    }
 }
